@@ -1,4 +1,6 @@
 class TimeManager {
+    private startDate: Date;
+    private endDate: Date;
     private initialTime: number;
     private endTime: number;
     private pauseTime: number | null = null;
@@ -7,8 +9,10 @@ class TimeManager {
     private isPaused: boolean = false;
 
     constructor(minutes: number) {
+        this.startDate = new Date();
         this.initialTime = minutes * 60;
         this.endTime = Date.now() + this.initialTime * 1000;
+        this.endDate = new Date(this.endTime);
     }
 
     start(): void {
@@ -53,10 +57,12 @@ class TimeManager {
 
     addTime(minutes: number): void {
         this.endTime += minutes * 60 * 1000;
+        this.endDate = new Date(this.endTime);
     }
 
     subtractTime(minutes: number): void {
         this.endTime = Math.max(Date.now(), this.endTime - minutes * 60 * 1000);
+        this.endDate = new Date(this.endTime); // Обновляем endDate
     }
 
     getRemainingTime(): { minutes: number; seconds: number } {
@@ -84,6 +90,14 @@ class TimeManager {
             console.log("pause")
             this.pause()
         }
+    }
+
+    getStartDate(): Date {
+        return this.startDate;
+    }
+
+    getEndDate(): Date {
+        return this.endDate;
     }
 }
 

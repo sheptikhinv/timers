@@ -6,12 +6,30 @@ import styles from './Timer.module.css'
 const Timer = () => {
     const [timeManager, recreateTimeManager] = useState(() => new TimeManager(0))
     const [remainingTime, setRemainingTime] = useState({ minutes: 0, seconds: 0 });
+    const [startDate, setStartDate] = useState('00:00');
+    const [endDate, setEndDate] = useState('00:00');
+
+    const formatTime = (date: Date) => {
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+      };
 
     useEffect(() => {
         timeManager.start()
         console.log("timer started")
         const interval = setInterval(() => {
-            setRemainingTime(timeManager.getRemainingTime())
+            setRemainingTime(timeManager.getRemainingTime());
+            let startString = formatTime(timeManager.getStartDate());
+            let endString = formatTime(timeManager.getEndDate());
+            if (startString === endString) {
+                setStartDate('00:00');
+                setEndDate('00:00');
+            }
+            else {
+                setStartDate(startString);
+                setEndDate(endString);
+            }
         }, 100);
         
         return () => {
@@ -29,13 +47,21 @@ const Timer = () => {
         <div className={styles.timer_container}>
             <div className={styles.top_buttons}>
                 <div className={styles.minute_buttons}>
-                    <Button label='-1' onClick={handleSubstract}/>
-                    <Button label='+1' onClick={handleAdd}/>
+                    <Button label='-1 мин' onClick={handleSubstract}/>
+                    <Button label='+1 мин' onClick={handleAdd}/>
                 </div>
-                <Button label='X'/>
+                <Button label='X' onClick={() => handleRecreation(-1)}/>
             </div>
             <div className={styles.clock}>
                 <a onClick={handlePause} className={styles.clock_text}>{remainingTime.minutes}:{remainingTime.seconds < 10 ? '0' : ''}{remainingTime.seconds}</a>
+            </div>
+            <div className={styles.dates_container}>
+                <div className={styles.dates_item}>
+                    {startDate}
+                </div>
+                <div className={styles.dates_item}>
+                    {endDate}
+                </div>
             </div>
             <div className={styles.presets_buttons}>
                 <Button label='15' onClick={() => handleRecreation(15)}/>

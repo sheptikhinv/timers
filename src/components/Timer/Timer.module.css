@@ -47,6 +47,29 @@
     transform: translateY(4px);
 }
 
+.dates_container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dates_item {
+    display: flex;
+    justify-content: center;
+    color: black;
+    border-radius: 16px;
+    border-color: #DCC3F8;
+    border-width: 4px;
+    border-style: solid;
+    padding: 8px;
+    width: 100%;
+
+    font-family: 'Montserrat';
+    font-weight: bold;
+    font-size: 24px;
+}
+
 .presets_buttons {
     display: flex;
     flex-direction: row;
