@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import TimeManager from '../../helpers/TimeManager';
 import Button from '../Button/Button';
 import styles from './Timer.module.css'
+import { formatTime } from '../../helpers/Formatters';
 
 const Timer = () => {
     const [timeManager, recreateTimeManager] = useState(() => new TimeManager(0))
@@ -9,19 +10,15 @@ const Timer = () => {
     const [startDate, setStartDate] = useState('00:00');
     const [endDate, setEndDate] = useState('00:00');
 
-    const formatTime = (date: Date) => {
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${hours}:${minutes}`;
-      };
+
 
     useEffect(() => {
         timeManager.start()
         console.log("timer started")
         const interval = setInterval(() => {
             setRemainingTime(timeManager.getRemainingTime());
-            let startString = formatTime(timeManager.getStartDate());
-            let endString = formatTime(timeManager.getEndDate());
+            const startString = formatTime(timeManager.getStartDate());
+            const endString = formatTime(timeManager.getEndDate());
             if (startString === endString) {
                 setStartDate('00:00');
                 setEndDate('00:00');
