@@ -24,8 +24,10 @@ const Timers = () => {
             <div className={styles.content}>
                 <header className={styles.header}>
                     <a className={`${styles.header_text} ${styles.title} ${styles.header_item}`}>MetaTimer</a>
-                    <a className={`${styles.header_text} ${styles.title} ${styles.header_item}`}>{formatFullTime(time)}</a>
-                    <Button className={styles.header_item} label={"?"} onClick={() => setIsReleasesListOpen(!isReleasesListOpen)}/>
+                    <div className={styles.mobile_row}>
+                        <a className={`${styles.header_text} ${styles.title} ${styles.header_item}`}>{formatFullTime(time)}</a>
+                        <Button className={styles.header_item} label={"?"} onClick={() => setIsReleasesListOpen(!isReleasesListOpen)}/>
+                    </div>
                 </header>
                 <div className={styles.timers_container}>
                     <Timer id={"timer_1"}/>
