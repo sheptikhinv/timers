@@ -38,9 +38,14 @@ const Timer = (props: TimerProps) => {
         }
     }, [timeManager])
 
-    const handlePause = () => timeManager.togglePause();
-    const handleAdd = () => timeManager.addTime(1);
-    const handleSubstract = () => timeManager.subtractTime(1);
+    const handleUpdate = (updater: (manager: TimeManager) => void) => {
+        updater(timeManager);
+        localStorageManager.setItem(props.id, timeManager);
+    }
+
+    const handlePause = () => handleUpdate(m => m.togglePause());
+    const handleAdd = () => handleUpdate(m => m.addTime(1));
+    const handleSubstraction = () => handleUpdate(m => m.subtractTime(1));
     const handleRecreation = (minutes: number) => {
         const newTimeManager = new TimeManager(minutes)
         recreateTimeManager(newTimeManager);
@@ -51,7 +56,7 @@ const Timer = (props: TimerProps) => {
         <div className={styles.timer_container}>
             <div className={styles.top_buttons}>
                 <div className={styles.minute_buttons}>
-                    <Button label='-1 мин' onClick={handleSubstract}/>
+                    <Button label='-1 мин' onClick={handleSubstraction}/>
                     <Button label='+1 мин' onClick={handleAdd}/>
                 </div>
                 <Button label='X' onClick={() => handleRecreation(-1)}/>
