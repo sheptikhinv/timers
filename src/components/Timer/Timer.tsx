@@ -1,16 +1,20 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import TimeManager from '../../helpers/TimeManager';
 import Button from '../Button/Button';
 import styles from './Timer.module.css'
-import { formatTime } from '../../helpers/Formatters';
+import {formatTime} from '../../helpers/Formatters';
+import LocalStorageManager from "../../helpers/LocalStorageManager.ts";
 
-const Timer = () => {
+interface TimerProps {
+    id: string
+}
+
+const Timer = (props: TimerProps) => {
     const [timeManager, recreateTimeManager] = useState(() => new TimeManager(0))
-    const [remainingTime, setRemainingTime] = useState({ minutes: 0, seconds: 0 });
+    const [remainingTime, setRemainingTime] = useState({minutes: 0, seconds: 0});
     const [startDate, setStartDate] = useState('00:00');
     const [endDate, setEndDate] = useState('00:00');
-
-
+    const localStorageManager = new LocalStorageManager<TimeManager>();
 
     useEffect(() => {
         timeManager.start()
@@ -22,13 +26,12 @@ const Timer = () => {
             if (startString === endString) {
                 setStartDate('00:00');
                 setEndDate('00:00');
-            }
-            else {
+            } else {
                 setStartDate(startString);
                 setEndDate(endString);
             }
         }, 100);
-        
+
         return () => {
             clearInterval(interval);
             timeManager.stop();
@@ -38,7 +41,11 @@ const Timer = () => {
     const handlePause = () => timeManager.togglePause();
     const handleAdd = () => timeManager.addTime(1);
     const handleSubstract = () => timeManager.subtractTime(1);
-    const handleRecreation = (minutes: number) => recreateTimeManager(new TimeManager(minutes))
+    const handleRecreation = (minutes: number) => {
+        const newTimeManager = new TimeManager(minutes)
+        recreateTimeManager(newTimeManager);
+        localStorageManager.setItem(props.id, newTimeManager);
+    }
 
     return (
         <div className={styles.timer_container}>
@@ -50,7 +57,8 @@ const Timer = () => {
                 <Button label='X' onClick={() => handleRecreation(-1)}/>
             </div>
             <div className={styles.clock}>
-                <a onClick={handlePause} className={styles.clock_text}>{remainingTime.minutes}:{remainingTime.seconds < 10 ? '0' : ''}{remainingTime.seconds}</a>
+                <a onClick={handlePause}
+                   className={styles.clock_text}>{remainingTime.minutes}:{remainingTime.seconds < 10 ? '0' : ''}{remainingTime.seconds}</a>
             </div>
             <div className={styles.dates_container}>
                 <div className={styles.dates_item}>

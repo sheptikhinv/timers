@@ -22,10 +22,10 @@ const Timers = () => {
                 <a className={`${styles.header_text} ${styles.title}`}>{formatFullTime(time)}</a>
             </header>
             <div className={styles.timers_container}>
-                <Timer/>
-                <Timer/>
-                <Timer/>
-                <Timer/>
+                <Timer id={"timer_1"}/>
+                <Timer id={"timer_2"}/>
+                <Timer id={"timer_3"}/>
+                <Timer id={"timer_4"}/>
             </div>
         </div>
     )
