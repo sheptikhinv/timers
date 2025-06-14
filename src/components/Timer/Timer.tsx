@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import TimeManager from '../../helpers/TimeManager';
 import Button from '../Button/Button';
 import styles from './Timer.module.css'
-import {formatTime} from '../../helpers/Formatters';
+import {formatTime, isToday} from '../../helpers/DateFunctions.ts';
 import LocalStorageManager from "../../helpers/LocalStorageManager.ts";
 
 interface TimerProps {
@@ -10,7 +10,25 @@ interface TimerProps {
 }
 
 const Timer = (props: TimerProps) => {
-    const [timeManager, recreateTimeManager] = useState(() => new TimeManager(0))
+    const [timeManager, recreateTimeManager] = useState(() => {
+        const localStorageManager = new LocalStorageManager<TimeManager>();
+        const storedRaw = localStorageManager.getItem(props.id);
+        let stored: TimeManager | null = null;
+
+        if (storedRaw === null) {
+            return new TimeManager(0);
+        }
+
+        stored = TimeManager.initFromJSON(storedRaw);
+
+        if (!isToday(stored.getStartDate())) {
+            localStorageManager.removeItem(props.id);
+            return new TimeManager(0);
+        }
+
+        return TimeManager.initFromJSON(storedRaw);
+
+    })
     const [remainingTime, setRemainingTime] = useState({minutes: 0, seconds: 0});
     const [startDate, setStartDate] = useState('00:00');
     const [endDate, setEndDate] = useState('00:00');
@@ -18,18 +36,12 @@ const Timer = (props: TimerProps) => {
 
     useEffect(() => {
         timeManager.start()
-        console.log("timer started")
         const interval = setInterval(() => {
             setRemainingTime(timeManager.getRemainingTime());
             const startString = formatTime(timeManager.getStartDate());
             const endString = formatTime(timeManager.getEndDate());
-            if (startString === endString) {
-                setStartDate('00:00');
-                setEndDate('00:00');
-            } else {
-                setStartDate(startString);
-                setEndDate(endString);
-            }
+            setStartDate(startString === endString ? '00:00' : startString);
+            setEndDate(startString === endString ? '00:00' : endString);
         }, 100);
 
         return () => {
@@ -46,6 +58,10 @@ const Timer = (props: TimerProps) => {
     const handlePause = () => handleUpdate(m => m.togglePause());
     const handleAdd = () => handleUpdate(m => m.addTime(1));
     const handleSubstraction = () => handleUpdate(m => m.subtractTime(1));
+    const handleClear = () => {
+        localStorageManager.removeItem(props.id);
+        recreateTimeManager(new TimeManager(0));
+    }
     const handleRecreation = (minutes: number) => {
         const newTimeManager = new TimeManager(minutes)
         recreateTimeManager(newTimeManager);
@@ -59,7 +75,7 @@ const Timer = (props: TimerProps) => {
                     <Button label='-1 мин' onClick={handleSubstraction}/>
                     <Button label='+1 мин' onClick={handleAdd}/>
                 </div>
-                <Button label='X' onClick={() => handleRecreation(-1)}/>
+                <Button label='X' onClick={() => handleClear()}/>
             </div>
             <div className={styles.clock}>
                 <a onClick={handlePause}

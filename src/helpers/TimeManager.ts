@@ -15,6 +15,20 @@ class TimeManager {
         this.endDate = new Date(this.endTime);
     }
 
+    static initFromJSON(json: TimeManager): TimeManager {
+        const manager = new TimeManager(0);
+
+        manager.startDate = new Date(json.startDate);
+        manager.endDate = new Date(json.endDate);
+        manager.initialTime = json.initialTime;
+        manager.endTime = json.endTime;
+        manager.pauseTime = json.pauseTime;
+        manager.remainingTimeOnPause = json.remainingTimeOnPause;
+        manager.isPaused = json.isPaused;
+
+        return manager;
+    }
+
     start(): void {
         if (this.intervalId !== null || this.pauseTime !== null) return;
 

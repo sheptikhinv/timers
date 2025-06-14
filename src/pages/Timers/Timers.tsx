@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import Timer from '../../components/Timer/Timer';
 import styles from './Timers.module.css';
-import {formatFullTime} from "../../helpers/Formatters.ts";
+import {formatFullTime} from "../../helpers/DateFunctions.ts";
 
 const Timers = () => {
     const [time, setTime] = useState(new Date());
