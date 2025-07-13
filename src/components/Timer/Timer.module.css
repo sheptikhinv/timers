@@ -31,6 +31,7 @@
     border-color: #DCC3F8;
     border-width: 0.8rem;
     border-style: solid;
+    margin: 0 auto;
 }
 
 .clock_text {
@@ -53,6 +54,22 @@
     justify-content: space-between;
     gap: 1.6rem;
 }
+
+@media (max-width: 768px) {
+    .timer_container {
+        width: 100%;
+        max-width: 350px;
+    }
+
+    .clock {
+        width: 22rem;
+        height: 22rem;
+    }
+
+    .clock_text {
+        font-size: 3.5rem;
+    }
+    }
 
 .dates_item {
     display: flex;
