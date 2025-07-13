@@ -13,41 +13,8 @@ body, html {
     gap: 1.6rem;
 }
 
-.mobile_row {
-    display: flex;
-    gap: 1.6rem;
-}
-
-@media (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .header .header_item:first-child {
-        align-self: center;
-        margin: 0 auto;
-    }
-
-    .mobile_row {
-        display: flex;
-        width: 100%;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 1rem;
-    }
-
-    .header .header_item:nth-child(2) {
-        margin-left: 0;
-    }
-
-    .timers_container {
-        justify-content: center;
-    }
-
-    .title {
-        font-size: 3.2rem;
-    }
+.header .header_item:nth-child(2) {
+    margin-left: auto;
 }
 
 .content {
