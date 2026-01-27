@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import TimeManager from '../../helpers/TimeManager';
 import Button from '../Button/Button';
 import styles from './Timer.module.css'
@@ -9,40 +9,67 @@ interface TimerProps {
     id: string
 }
 
+type TimerViewState = {
+    remainingTime: { minutes: number; seconds: number };
+    startDate: string;
+    endDate: string;
+};
+
 const Timer = (props: TimerProps) => {
-    const [timeManager, recreateTimeManager] = useState(() => {
-        const localStorageManager = new LocalStorageManager<TimeManager>();
-        const storedRaw = localStorageManager.getItem(props.id);
-        let stored: TimeManager | null = null;
+    const storageRef = useRef(new LocalStorageManager<TimeManager>());
+
+    const [timeManager, setTimeManager] = useState(() => {
+        const storedRaw = storageRef.current.getItem(props.id);
 
         if (storedRaw === null) {
             return new TimeManager(0);
         }
 
-        stored = TimeManager.initFromJSON(storedRaw);
+        const stored = TimeManager.initFromJSON(storedRaw);
 
         if (!isToday(stored.getStartDate())) {
-            localStorageManager.removeItem(props.id);
+            storageRef.current.removeItem(props.id);
             return new TimeManager(0);
         }
 
-        return TimeManager.initFromJSON(storedRaw);
+        return stored;
 
-    })
-    const [remainingTime, setRemainingTime] = useState({minutes: 0, seconds: 0});
-    const [startDate, setStartDate] = useState('00:00');
-    const [endDate, setEndDate] = useState('00:00');
-    const localStorageManager = new LocalStorageManager<TimeManager>();
+    });
+
+    const [view, setView] = useState<TimerViewState>({
+        remainingTime: {minutes: 0, seconds: 0},
+        startDate: '00:00',
+        endDate: '00:00',
+    });
 
     useEffect(() => {
         timeManager.start()
+
         const interval = setInterval(() => {
-            setRemainingTime(timeManager.getRemainingTime());
-            const startString = formatTime(timeManager.getStartDate());
-            const endString = formatTime(timeManager.getEndDate());
-            setStartDate(startString === endString ? '00:00' : startString);
-            setEndDate(startString === endString ? '00:00' : endString);
-        }, 100);
+            const remainingTime = timeManager.getRemainingTime();
+
+            const startDateString = formatTime(timeManager.getStartDate());
+            const endDateString = formatTime(timeManager.getEndDate());
+            const same = startDateString === endDateString;
+
+            const next: TimerViewState = {
+                remainingTime,
+                startDate: same ? '00:00' : startDateString,
+                endDate: same ? '00:00' : endDateString,
+            };
+
+            setView((prev) => {
+                if (
+                    prev.remainingTime.minutes === next.remainingTime.minutes &&
+                    prev.remainingTime.seconds === next.remainingTime.seconds &&
+                    prev.startDate === next.startDate &&
+                    prev.endDate === next.endDate
+                ) {
+                    return prev;
+                }
+                return next;
+            })
+        }, 250);
 
         return () => {
             clearInterval(interval);
@@ -52,20 +79,21 @@ const Timer = (props: TimerProps) => {
 
     const handleUpdate = (updater: (manager: TimeManager) => void) => {
         updater(timeManager);
-        localStorageManager.setItem(props.id, timeManager);
+        storageRef.current.setItem(props.id, timeManager);
     }
 
     const handlePause = () => handleUpdate(m => m.togglePause());
     const handleAdd = () => handleUpdate(m => m.addTime(1));
     const handleSubstraction = () => handleUpdate(m => m.subtractTime(1));
+
     const handleClear = () => {
-        localStorageManager.removeItem(props.id);
-        recreateTimeManager(new TimeManager(0));
+        storageRef.current.removeItem(props.id);
+        setTimeManager(new TimeManager(0));
     }
     const handleRecreation = (minutes: number) => {
         const newTimeManager = new TimeManager(minutes)
-        recreateTimeManager(newTimeManager);
-        localStorageManager.setItem(props.id, newTimeManager);
+        setTimeManager(newTimeManager);
+        storageRef.current.setItem(props.id, newTimeManager);
     }
 
     return (
@@ -79,14 +107,14 @@ const Timer = (props: TimerProps) => {
             </div>
             <div className={styles.clock}>
                 <a onClick={handlePause}
-                   className={styles.clock_text}>{remainingTime.minutes}:{remainingTime.seconds < 10 ? '0' : ''}{remainingTime.seconds}</a>
+                   className={styles.clock_text}>{view.remainingTime.minutes}:{view.remainingTime.seconds < 10 ? '0' : ''}{view.remainingTime.seconds}</a>
             </div>
             <div className={styles.dates_container}>
                 <div className={styles.dates_item}>
-                    {startDate}
+                    {view.startDate}
                 </div>
                 <div className={styles.dates_item}>
-                    {endDate}
+                    {view.endDate}
                 </div>
             </div>
             <div className={styles.presets_buttons}>
