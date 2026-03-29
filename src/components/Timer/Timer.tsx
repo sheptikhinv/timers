@@ -1,8 +1,8 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import TimeManager from '../../helpers/TimeManager';
 import Button from '../Button/Button';
 import styles from './Timer.module.css'
-import {formatTime, isToday} from '../../helpers/DateFunctions.ts';
+import {formatRemainingTime, formatTime, isToday} from '../../helpers/DateFunctions.ts';
 import LocalStorageManager from "../../helpers/LocalStorageManager.ts";
 
 interface TimerProps {
@@ -10,8 +10,8 @@ interface TimerProps {
 }
 
 const Timer = (props: TimerProps) => {
+    const localStorageManager = useMemo(() => new LocalStorageManager<TimeManager>(), []);
     const [timeManager, recreateTimeManager] = useState(() => {
-        const localStorageManager = new LocalStorageManager<TimeManager>();
         const storedRaw = localStorageManager.getItem(props.id);
         let stored: TimeManager | null = null;
 
@@ -27,31 +27,41 @@ const Timer = (props: TimerProps) => {
         }
 
         return TimeManager.initFromJSON(storedRaw);
+    });
+    const remainingTimeRef = useRef<HTMLAnchorElement>(null);
 
-    })
-    const [remainingTime, setRemainingTime] = useState({minutes: 0, seconds: 0});
-    const [startDate, setStartDate] = useState('00:00');
-    const [endDate, setEndDate] = useState('00:00');
-    const localStorageManager = new LocalStorageManager<TimeManager>();
+    const updateRemainingTime = useCallback(() => {
+        const remainingTime = timeManager.getRemainingTime();
+        if (remainingTimeRef.current) {
+            remainingTimeRef.current.textContent = formatRemainingTime(remainingTime);
+        }
+    }, [timeManager]);
+
+    const isStartEqualEnd = timeManager.getStartDate().getTime() === timeManager.getEndDate().getTime();
+    const startDate = isStartEqualEnd ? '00:00' : formatTime(timeManager.getStartDate());
+    const endDate = isStartEqualEnd ? '00:00' : formatTime(timeManager.getEndDate());
 
     useEffect(() => {
-        timeManager.start()
-        const interval = setInterval(() => {
-            setRemainingTime(timeManager.getRemainingTime());
-            const startString = formatTime(timeManager.getStartDate());
-            const endString = formatTime(timeManager.getEndDate());
-            setStartDate(startString === endString ? '00:00' : startString);
-            setEndDate(startString === endString ? '00:00' : endString);
-        }, 100);
-
+        timeManager.start();
+        updateRemainingTime();
         return () => {
-            clearInterval(interval);
             timeManager.stop();
-        }
-    }, [timeManager])
+        };
+    }, [timeManager, updateRemainingTime]);
+
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            updateRemainingTime();
+        }, 200);
+
+        return () => clearInterval(intervalId);
+    }, [timeManager, updateRemainingTime]);
 
     const handleUpdate = (updater: (manager: TimeManager) => void) => {
         updater(timeManager);
+
+        const updatedTimeManager = TimeManager.initFromJSON(timeManager);
+        recreateTimeManager(updatedTimeManager);
         localStorageManager.setItem(props.id, timeManager);
     }
 
@@ -79,7 +89,8 @@ const Timer = (props: TimerProps) => {
             </div>
             <div className={styles.clock}>
                 <a onClick={handlePause}
-                   className={styles.clock_text}>{remainingTime.minutes}:{remainingTime.seconds < 10 ? '0' : ''}{remainingTime.seconds}</a>
+                   ref={remainingTimeRef}
+                   className={styles.clock_text}/>
             </div>
             <div className={styles.dates_container}>
                 <div className={styles.dates_item}>

@@ -11,6 +11,10 @@ export const formatTime = (date: Date) => {
     return `${hours}:${minutes}`;
 };
 
+export const formatRemainingTime = ({minutes, seconds}: { minutes: number, seconds: number }) => {
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
+
 export const isToday = (date: Date) => {
     const today = new Date();
     return (
